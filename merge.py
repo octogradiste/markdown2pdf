@@ -86,11 +86,14 @@ if __name__ == "__main__":
     parser.add_argument("dest", type=str, help="Destination directory.")
     parser.add_argument("start", type=int, help="Start week number.")
     parser.add_argument("end", type=int, help="End week number.")
+    parser.add_argument("-c", "--clean", action="store_true", help="Clean the destination directory.")
 
     args = parser.parse_args()
 
     dirs = extract_dirs(args.src, args.start, args.end)
     copy_dirs(args.src, args.dest, dirs)
     generate_pdf(args.dest)
-    clean(args.dest)
+
+    if args.clean:
+        clean(args.dest)
 
