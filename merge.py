@@ -7,6 +7,14 @@ import shutil
 PATTERN = re.compile(r"Week(\d{2})")
 PDF_NAME = "notes.pdf"
 
+MARGIN_HEADER = '''geometry: margin=2cm
+'''
+
+WRAP_HEADER = '''header-includes:
+ - \\usepackage{fvextra}
+ - \\DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\\\\{\\}}
+'''
+
 def extract_dirs(src: str, start: int, end: int) -> list[str]:
     """Extract all week directories that are between start and end.
 
@@ -48,17 +56,25 @@ def copy_dirs(src: str, dest: str, dirs: list[str]):
             # Copy the directory to the destination
             shutil.copytree(path, dest, dirs_exist_ok=True)
 
-def generate_pdf(dest: str, lecture: bool):
+def generate_pdf(dest: str, lecture: bool, margin: bool, wrap_code: bool):
     """Generate a pdf file from all the markdown files in the destination directory.
 
     Args:
         dest (str): Destination directory.
         lecture (bool): Whether to include the "Lecture #week" before all files.
+        margin (bool): Whether to add a margin to the pdf.
+        wrap_code (bool): Whether to wrap the code in a code block.
     """    
 
     # Get the current directory
 
-    concat = ""
+    concat = "---\n"
+    if margin:
+        concat += MARGIN_HEADER
+    if wrap_code:
+        concat += WRAP_HEADER
+    concat += "---\n"
+
     week = 1
     for path in sorted(os.listdir(dest)):
         if path.endswith(".md"):
@@ -107,12 +123,14 @@ if __name__ == "__main__":
     parser.add_argument("end", type=int, help="End week number.")
     parser.add_argument("-c", "--clean", action="store_true", help="Clean the destination directory.")
     parser.add_argument("-l", "--lecture", action="store_true", help="Add the lecture number before each file.")
+    parser.add_argument("-w", "--wrap", action="store_true", help="Wrap the code in a code block.")
+    parser.add_argument("-m", "--margin", action="store_true", help="Add a margin to the pdf.")
 
     args = parser.parse_args()
 
     dirs = extract_dirs(args.src, args.start, args.end)
     copy_dirs(args.src, args.dest, dirs)
-    generate_pdf(args.dest, args.lecture)
+    generate_pdf(args.dest, args.lecture, args.margin, args.wrap)
 
     if args.clean:
         clean(args.dest)
