@@ -48,18 +48,37 @@ def copy_dirs(src: str, dest: str, dirs: list[str]):
             # Copy the directory to the destination
             shutil.copytree(path, dest, dirs_exist_ok=True)
 
-def generate_pdf(dest: str):
+def generate_pdf(dest: str, lecture: bool):
     """Generate a pdf file from all the markdown files in the destination directory.
 
     Args:
         dest (str): Destination directory.
+        lecture (bool): Whether to include the "Lecture #week" before all files.
     """    
 
     # Get the current directory
-    cwd = os.getcwd()
 
+    concat = ""
+    week = 1
+    for path in sorted(os.listdir(dest)):
+        if path.endswith(".md"):
+            if lecture:
+                concat += f"# Lecture {week}\n\n"
+                week += 1
+
+            full_path = os.path.join(dest, path)
+            with open(full_path, "r") as f:
+                concat += f.read()
+            
+            concat += "\n\n"
+
+    full_path = os.path.join(dest, "notes.md")
+    with open(full_path, "w") as f:
+        f.write(concat)
+
+    cwd = os.getcwd()
     os.chdir(dest)
-    os.system("cat *.md > notes.md")
+    # os.system("cat *.md > notes.md")
     os.system(f"pandoc notes.md -o {PDF_NAME}")
 
     # Go back to the original directory
@@ -87,12 +106,13 @@ if __name__ == "__main__":
     parser.add_argument("start", type=int, help="Start week number.")
     parser.add_argument("end", type=int, help="End week number.")
     parser.add_argument("-c", "--clean", action="store_true", help="Clean the destination directory.")
+    parser.add_argument("-l", "--lecture", action="store_true", help="Add the lecture number before each file.")
 
     args = parser.parse_args()
 
     dirs = extract_dirs(args.src, args.start, args.end)
     copy_dirs(args.src, args.dest, dirs)
-    generate_pdf(args.dest)
+    generate_pdf(args.dest, args.lecture)
 
     if args.clean:
         clean(args.dest)
