@@ -5,7 +5,7 @@ import shutil
 
 
 PATTERN = re.compile(r"Week(\d{2})")
-PDF_NAME = "notes.pdf"
+# PDF_NAME = "notes.pdf"
 
 MARGIN_HEADER = '''geometry: margin=2cm
 '''
@@ -56,7 +56,7 @@ def copy_dirs(src: str, dest: str, dirs: list[str]):
             # Copy the directory to the destination
             shutil.copytree(path, dest, dirs_exist_ok=True)
 
-def generate_pdf(dest: str, lecture: bool, margin: bool, wrap_code: bool):
+def generate_pdf(dest: str, lecture: bool, margin: bool, wrap_code: bool, pdf_name: str):
     """Generate a pdf file from all the markdown files in the destination directory.
 
     Args:
@@ -64,6 +64,7 @@ def generate_pdf(dest: str, lecture: bool, margin: bool, wrap_code: bool):
         lecture (bool): Whether to include the "Lecture #week" before all files.
         margin (bool): Whether to add a margin to the pdf.
         wrap_code (bool): Whether to wrap the code in a code block.
+        pdf_name (str): Output pdf file name.
     """    
 
     # Get the current directory
@@ -95,12 +96,12 @@ def generate_pdf(dest: str, lecture: bool, margin: bool, wrap_code: bool):
     cwd = os.getcwd()
     os.chdir(dest)
     # os.system("cat *.md > notes.md")
-    os.system(f"pandoc notes.md -o {PDF_NAME}")
+    os.system(f"pandoc notes.md -o {pdf_name}")
 
     # Go back to the original directory
     os.chdir(cwd)
 
-def clean(dest: str):
+def clean(dest: str, pdf_name: str):
     """Clean the destination directory.
 
     Args:
@@ -111,7 +112,7 @@ def clean(dest: str):
     for path in os.listdir():
         if os.path.isdir(path):
             shutil.rmtree(path)
-        elif path != PDF_NAME:
+        elif path != pdf_name:
             os.remove(path)
 
 
@@ -125,13 +126,14 @@ if __name__ == "__main__":
     parser.add_argument("-l", "--lecture", action="store_true", help="Add the lecture number before each file.")
     parser.add_argument("-w", "--wrap", action="store_true", help="Wrap the code in a code block.")
     parser.add_argument("-m", "--margin", action="store_true", help="Add a margin to the pdf.")
+    parser.add_argument("-o", "--output", type=str, help="Output file name.", default="notes.pdf")
 
     args = parser.parse_args()
 
     dirs = extract_dirs(args.src, args.start, args.end)
     copy_dirs(args.src, args.dest, dirs)
-    generate_pdf(args.dest, args.lecture, args.margin, args.wrap)
+    generate_pdf(args.dest, args.lecture, args.margin, args.wrap, args.output)
 
     if args.clean:
-        clean(args.dest)
+        clean(args.dest, args.output)
 
