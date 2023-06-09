@@ -56,7 +56,7 @@ def copy_dirs(src: str, dest: str, dirs: list[str]):
             # Copy the directory to the destination
             shutil.copytree(path, dest, dirs_exist_ok=True)
 
-def generate_pdf(dest: str, lecture: bool, margin: bool, wrap_code: bool, pdf_name: str):
+def generate_pdf(dest: str, lecture: bool, margin: bool, wrap_code: bool, pdf_name: str, start: int):
     """Generate a pdf file from all the markdown files in the destination directory.
 
     Args:
@@ -65,6 +65,7 @@ def generate_pdf(dest: str, lecture: bool, margin: bool, wrap_code: bool, pdf_na
         margin (bool): Whether to add a margin to the pdf.
         wrap_code (bool): Whether to wrap the code in a code block.
         pdf_name (str): Output pdf file name.
+        start (int): Start week.
     """    
 
     # Get the current directory
@@ -76,7 +77,7 @@ def generate_pdf(dest: str, lecture: bool, margin: bool, wrap_code: bool, pdf_na
         concat += WRAP_HEADER
     concat += "---\n"
 
-    week = 1
+    week = start
     for path in sorted(os.listdir(dest)):
         if path.endswith(".md"):
             if lecture:
@@ -132,7 +133,7 @@ if __name__ == "__main__":
 
     dirs = extract_dirs(args.src, args.start, args.end)
     copy_dirs(args.src, args.dest, dirs)
-    generate_pdf(args.dest, args.lecture, args.margin, args.wrap, args.output)
+    generate_pdf(args.dest, args.lecture, args.margin, args.wrap, args.output, args.start)
 
     if args.clean:
         clean(args.dest, args.output)
