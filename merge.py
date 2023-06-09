@@ -61,7 +61,7 @@ def generate_pdf(dest: str, lecture: bool, margin: bool, wrap_code: bool, pdf_na
 
     Args:
         dest (str): Destination directory.
-        lecture (bool): Whether to include the "Lecture #week" before all files.
+        lecture (bool): Whether to include the "Lecture #week" before all files. Note that if the week number can't be extracted from the file name, a simple week counter will be used instead.
         margin (bool): Whether to add a margin to the pdf.
         wrap_code (bool): Whether to wrap the code in a code block.
         pdf_name (str): Output pdf file name.
@@ -81,6 +81,12 @@ def generate_pdf(dest: str, lecture: bool, margin: bool, wrap_code: bool, pdf_na
     for path in sorted(os.listdir(dest)):
         if path.endswith(".md"):
             if lecture:
+                pattern = re.compile(r"lecture_(\d{2}).md")
+                match = re.match(pattern, path)
+                if match != None:
+                    # Prefer week number from file path over week counter.
+                    week = int(match.group(1))
+
                 concat += f"# Lecture {week}\n\n"
                 week += 1
 
